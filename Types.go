@@ -1,16 +1,17 @@
 package main
 
 type ReportType struct {
-	player_id int
+	Player_id int `json:"player_uid"`
 	fleets    map[string]FleetType
 	players   map[string]PlayerType
-	stars     map[string]StarType
+	Stars     map[string]StarType `json:"stars"`
 }
 
 type NeptuneResponse struct {
-	event string
-	order string
-	error string
+	event  string
+	order  string
+	error  string
+	Report ReportType `json:"report"`
 }
 
 type FleetType struct {

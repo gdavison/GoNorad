@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http/cookiejar"
@@ -47,6 +48,12 @@ func main() {
 
 	fmt.Println(res)
 
+	payloadBytes := []byte(res)
+	var gameData NeptuneResponse
+	e = json.Unmarshal(payloadBytes, &gameData)
+	ErrorExit(e)
+
+	fmt.Println("You are #", gameData.Report.Player_id)
 }
 
 func ErrorExit(e error) {
