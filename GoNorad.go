@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	//"github.com/gonum/graph"
+	"github.com/gonum/graph"
 	"github.com/gonum/graph/concrete"
+	"github.com/gonum/graph/search"
 	"io/ioutil"
 	"math"
 	"net/http/cookiejar"
@@ -39,9 +40,13 @@ func (*CookieFile) WriteContents(fileName string, contents string) {
 func main() {
 
 	destination := flag.String("destination", "", "the name of the destination star")
+	source := flag.String("source", "", "the name of the source star")
 	flag.Parse()
 
 	fmt.Println("looking for ", *destination)
+	if *source != "" {
+		fmt.Println("starting from ", *source)
+	}
 
 	var e error
 	var np2 = new(Neptune)
@@ -89,7 +94,7 @@ func main() {
 	for i, star1 := range allStars {
 		for _, star2 := range allStars[i+1:] {
 			distance := starDistanceInLightyears(star1, star2)
-			fmt.Println(star1.Name, "(", star1.Id, ") - ", star2.Name, "(", star2.Id, "): ", distance)
+			//fmt.Println(star1.Name, "(", star1.Id, ") - ", star2.Name, "(", star2.Id, "): ", distance)
 			edge := concrete.Edge{
 				H: concrete.Node(star1.Id),
 				T: concrete.Node(star2.Id)}
@@ -115,6 +120,60 @@ func main() {
 		": ", reachableStarsGraph.Cost(testEdge))
 	fmt.Println("There are ", len(starDistanceGraph.EdgeList()), " total edges")
 	fmt.Println("There are ", len(reachableStarsGraph.EdgeList()), " reachable edges")
+
+	var productionStars []StarType
+	for _, star := range myStars {
+		if star.Industry > 0 {
+			productionStars = append(productionStars, star)
+		} else {
+			fmt.Println("No production at ", star.Name)
+		}
+	}
+
+	foundDestinationStar := false
+	var destinationStar StarType
+	for _, star := range allStars {
+		if star.Name == *destination {
+			destinationStar = star
+			foundDestinationStar = true
+			continue
+		}
+	}
+
+	if !foundDestinationStar {
+		fmt.Println("Could not find ", *destination)
+		os.Exit(0)
+	}
+
+	destinationNode := concrete.Node(destinationStar.Id)
+	paths, _ := search.Dijkstra(destinationNode, reachableStarsGraph, func(edge graph.Edge) float64 {
+		return reachableStarsGraph.Cost(edge)
+	})
+
+	var testStar StarType
+	if *source != "" {
+		foundSourceStar := false
+		var sourceStar StarType
+		for _, star := range allStars {
+			if star.Name == *source {
+				sourceStar = star
+				foundSourceStar = true
+				continue
+			}
+		}
+		if !foundSourceStar {
+			fmt.Println("Could not find ", *source)
+			os.Exit(0)
+		}
+		testStar = sourceStar
+	} else {
+		testStar = productionStars[0]
+	}
+	fmt.Println("Path to ", testStar.Name, " (", testStar.Id, ")")
+	testPath := paths[testStar.Id]
+	for _, starId := range testPath {
+		fmt.Println(gameData.Report.Stars[strconv.Itoa(starId.ID())].Name)
+	}
 }
 
 func starDistanceInLightyears(star1, star2 StarType) float64 {
@@ -126,7 +185,7 @@ func starDistanceInLightyears(star1, star2 StarType) float64 {
 
 func distanceIsReachable(lightyears float64, techLevel int) bool {
 	requiredTechLevel := int(math.Max(math.Ceil(lightyears-3), 1))
-	fmt.Println("REQUIRED: ", requiredTechLevel)
+	//fmt.Println("REQUIRED: ", requiredTechLevel)
 
 	return techLevel >= requiredTechLevel
 }

@@ -43,6 +43,6 @@ type StarType struct {
 	X        float64 `json:"x,string"`
 	Y        float64 `json:"y,string"`
 	economy  int
-	industry int
+	Industry int `json:"i"`
 	science  int
 }
