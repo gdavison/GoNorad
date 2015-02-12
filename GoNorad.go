@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -34,6 +35,11 @@ func (*CookieFile) WriteContents(fileName string, contents string) {
 }
 
 func main() {
+
+	destination := flag.String("destination", "", "the name of the destination star")
+	flag.Parse()
+
+	fmt.Println("looking for ", *destination)
 
 	var e error
 	var np2 = new(Neptune)
@@ -71,29 +77,37 @@ func main() {
 	star2 := myStars[1]
 	fmt.Println("Star 2: ", star2.Name, " (x:", star2.X, ",y:", star2.Y, ")")
 
-	d := starDistance(star1, star2)
-	fmt.Println("raw distance: ", d)
-
-	lightyears := d * 8
+	lightyears := starDistanceInLightyears(star1, star2)
 	fmt.Println("light years: ", lightyears)
 
 	myPlayer := gameData.Report.Players[strconv.Itoa(gameData.Report.Player_id)]
 	myHyperspaceTech := myPlayer.Tech["propulsion"]
-	fmt.Println("Hyperspace tech value: ", myHyperspaceTech.Value)
+	fmt.Println("My Hyperspace tech value: ", myHyperspaceTech.Value)
 
 	hyperspaceLevel := math.Ceil(lightyears - 3)
-	rawHyperLevel := math.Ceil((d - 0.375) / 0.125)
 
 	fmt.Println("Tech level needed: ", hyperspaceLevel)
-	fmt.Println("Tech level needed (raw): ", rawHyperLevel)
+
+	if distanceIsReachable(lightyears, myHyperspaceTech.Level) {
+		fmt.Println("You got it! ", myHyperspaceTech.Level)
+	} else {
+		fmt.Println("Not enough. ", myHyperspaceTech.Level)
+	}
 }
 
-func starDistance(star1, star2 StarType) float64 {
+func starDistanceInLightyears(star1, star2 StarType) float64 {
 	dX := star1.X - star2.X
 	dY := star1.Y - star2.Y
 	fmt.Println("dX: ", dX, ", dY: ", dY)
 
-	return math.Sqrt(dX*dX + dY*dY)
+	return math.Sqrt(dX*dX+dY*dY) * 8
+}
+
+func distanceIsReachable(lightyears float64, techLevel int) bool {
+	requiredTechLevel := int(math.Max(math.Ceil(lightyears-3), 1))
+	fmt.Println("REQUIRED: ", requiredTechLevel)
+
+	return techLevel >= requiredTechLevel
 }
 
 func ErrorExit(e error) {
