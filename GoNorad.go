@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	//"github.com/gonum/graph"
+	"github.com/gonum/graph/concrete"
 	"io/ioutil"
 	"math"
 	"net/http/cookiejar"
@@ -63,36 +65,52 @@ func main() {
 
 	fmt.Println("You are #", gameData.Report.Player_id)
 
+	var allStars []StarType
 	var myStars []StarType
 	for _, star := range gameData.Report.Stars {
 		if star.PlayerId == gameData.Report.Player_id {
 			myStars = append(myStars, star)
 		}
+		allStars = append(allStars, star)
 	}
 
 	fmt.Println("Found ", len(myStars), " of your stars")
+	fmt.Println("Found ", len(allStars), " total stars")
 
-	star1 := myStars[0]
-	fmt.Println("Star 1: ", star1.Name, " (x:", star1.X, ",y:", star1.Y, ")")
-	star2 := myStars[1]
-	fmt.Println("Star 2: ", star2.Name, " (x:", star2.X, ",y:", star2.Y, ")")
+	//	star1 := myStars[0]
+	//	fmt.Println("Star 1: ", star1.Name, " (x:", star1.X, ",y:", star1.Y, ")")
+	//	star2 := myStars[1]
+	//	fmt.Println("Star 2: ", star2.Name, " (x:", star2.X, ",y:", star2.Y, ")")
+	//
+	//	lightyears := starDistanceInLightyears(star1, star2)
+	//	fmt.Println("light years: ", lightyears)
 
-	lightyears := starDistanceInLightyears(star1, star2)
-	fmt.Println("light years: ", lightyears)
+	starDistanceGraph := concrete.NewGraph()
+	for i, star1 := range allStars {
+		for _, star2 := range allStars[i+1:] {
+			distance := starDistanceInLightyears(star1, star2)
+			fmt.Println(star1.Name, " - ", star2.Name, ": ", distance)
+			//if distanceIsReachable(distance, myHyperspaceTech.Level)
+			edge := concrete.Edge{
+				H: concrete.Node(star1.Id),
+				T: concrete.Node(star2.Id)}
+			starDistanceGraph.AddUndirectedEdge(edge, distance)
+		}
+	}
 
 	myPlayer := gameData.Report.Players[strconv.Itoa(gameData.Report.Player_id)]
 	myHyperspaceTech := myPlayer.Tech["propulsion"]
 	fmt.Println("My Hyperspace tech value: ", myHyperspaceTech.Value)
 
-	hyperspaceLevel := math.Ceil(lightyears - 3)
-
-	fmt.Println("Tech level needed: ", hyperspaceLevel)
-
-	if distanceIsReachable(lightyears, myHyperspaceTech.Level) {
-		fmt.Println("You got it! ", myHyperspaceTech.Level)
-	} else {
-		fmt.Println("Not enough. ", myHyperspaceTech.Level)
-	}
+//	hyperspaceLevel := math.Ceil(lightyears - 3)
+//
+//	fmt.Println("Tech level needed: ", hyperspaceLevel)
+//
+//	if distanceIsReachable(lightyears, myHyperspaceTech.Level) {
+//		fmt.Println("You got it! ", myHyperspaceTech.Level)
+//	} else {
+//		fmt.Println("Not enough. ", myHyperspaceTech.Level)
+//	}
 }
 
 func starDistanceInLightyears(star1, star2 StarType) float64 {
