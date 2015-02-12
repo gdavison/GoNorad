@@ -37,7 +37,7 @@ type TechType struct {
 }
 
 type StarType struct {
-	Id       int
+	Id       int     `json:"uid"`
 	Name     string  `json:"n"`
 	PlayerId int     `json:"puid"`
 	X        float64 `json:"x,string"`

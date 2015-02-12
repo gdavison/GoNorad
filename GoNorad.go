@@ -89,8 +89,7 @@ func main() {
 	for i, star1 := range allStars {
 		for _, star2 := range allStars[i+1:] {
 			distance := starDistanceInLightyears(star1, star2)
-			fmt.Println(star1.Name, " - ", star2.Name, ": ", distance)
-			//if distanceIsReachable(distance, myHyperspaceTech.Level)
+			fmt.Println(star1.Name, "(", star1.Id, ") - ", star2.Name, "(", star2.Id, "): ", distance)
 			edge := concrete.Edge{
 				H: concrete.Node(star1.Id),
 				T: concrete.Node(star2.Id)}
@@ -102,21 +101,25 @@ func main() {
 	myHyperspaceTech := myPlayer.Tech["propulsion"]
 	fmt.Println("My Hyperspace tech value: ", myHyperspaceTech.Value)
 
-//	hyperspaceLevel := math.Ceil(lightyears - 3)
-//
-//	fmt.Println("Tech level needed: ", hyperspaceLevel)
-//
-//	if distanceIsReachable(lightyears, myHyperspaceTech.Level) {
-//		fmt.Println("You got it! ", myHyperspaceTech.Level)
-//	} else {
-//		fmt.Println("Not enough. ", myHyperspaceTech.Level)
-//	}
+	reachableStarsGraph := concrete.NewGraph()
+	for _, candidateEdge := range starDistanceGraph.EdgeList() {
+		cost := starDistanceGraph.Cost(candidateEdge)
+		if distanceIsReachable(cost, myHyperspaceTech.Level) {
+			reachableStarsGraph.AddUndirectedEdge(candidateEdge, cost)
+		}
+	}
+
+	testEdge := reachableStarsGraph.EdgeList()[0]
+	fmt.Println("test: from ", gameData.Report.Stars[strconv.Itoa(testEdge.Head().ID())].Name,
+		"to ", gameData.Report.Stars[strconv.Itoa(testEdge.Tail().ID())].Name,
+		": ", reachableStarsGraph.Cost(testEdge))
+	fmt.Println("There are ", len(starDistanceGraph.EdgeList()), " total edges")
+	fmt.Println("There are ", len(reachableStarsGraph.EdgeList()), " reachable edges")
 }
 
 func starDistanceInLightyears(star1, star2 StarType) float64 {
 	dX := star1.X - star2.X
 	dY := star1.Y - star2.Y
-	fmt.Println("dX: ", dX, ", dY: ", dY)
 
 	return math.Sqrt(dX*dX+dY*dY) * 8
 }
