@@ -61,14 +61,14 @@ func main() {
 	res, e = np2.GetData(config["gameNumber"], cookieJar)
 	ErrorExit(e)
 
-	//fmt.Println(res)
+	fmt.Println(res)
 
 	var gameData NeptuneResponse
 	payloadBytes := []byte(res)
 	e = json.Unmarshal(payloadBytes, &gameData)
 	ErrorExit(e)
 
-	fmt.Println("You are #", gameData.Report.Player_id)
+	fmt.Println("You are player #", gameData.Report.Player_id)
 
 	var allStars []StarType
 	var myStars []StarType
@@ -77,6 +77,12 @@ func main() {
 			myStars = append(myStars, star)
 		}
 		allStars = append(allStars, star)
+	}
+
+	for _, star := range myStars {
+		if star.HasGate() {
+			fmt.Println("Star ", star.Name, " has a Gate")
+		}
 	}
 
 	fmt.Println("Found ", len(myStars), " of your stars")

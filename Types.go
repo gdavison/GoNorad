@@ -37,12 +37,17 @@ type TechType struct {
 }
 
 type StarType struct {
-	Id       int     `json:"uid"`
-	Name     string  `json:"n"`
-	PlayerId int     `json:"puid"`
-	X        float64 `json:"x,string"`
-	Y        float64 `json:"y,string"`
-	economy  int
-	Industry int `json:"i"`
-	science  int
+	Id             int     `json:"uid"`
+	Name           string  `json:"n"`
+	PlayerId       int     `json:"puid"`
+	X              float64 `json:"x,string"`
+	Y              float64 `json:"y,string"`
+	economy        int
+	Industry       int `json:"i"`
+	science        int
+	PrivateHasGate int `json:"ga"`
+}
+
+func (star StarType) HasGate() bool {
+	return star.PrivateHasGate != 0
 }
